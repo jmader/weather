@@ -11,6 +11,7 @@ def get_dimm_data(utDate='', dir='.'):
 	import datetime
 	import requests
 	import re
+	import os
 
 	# If no utDate supplied, use the current value
 
@@ -20,6 +21,11 @@ def get_dimm_data(utDate='', dir='.'):
 	utDate = utDate.replace('-', '')
 	utDate = utDate.replace('/', '')
 	assert re.search('\d\d\d\d\d\d\d\d', utDate), 'unknown utDate format'
+
+	# Create directory
+
+        if not os.path.exists(dir):
+                os.makedirs(dir)
 
 	# Type of data to retrieve
 

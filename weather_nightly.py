@@ -1,7 +1,8 @@
-from datetime
+from datetime import datetime
 import os
 import shutil
 import re
+import verification
 
 def weather_nightly(utDate='', wxDir='.'):
 	'''
@@ -19,9 +20,9 @@ def weather_nightly(utDate='', wxDir='.'):
 	if not wxDir:
 		exit
 
-	utDate = utDate.replace('/', '-')
-	assert re.search('\d\d\d\d[-/]\d\d[-/]\d\d', utDate), 'unknown date format'
+	verification.verify_date(utDate)
 
+	utDate = utDate.replace('/', '-')
 	utDate_split = utDate.split('-')
 	year = int(utDate_split[0]) - 2000
 	month = utDate_split[1]

@@ -12,15 +12,17 @@ def skyprobe(utDate='', dir='.'):
 	import urllib.request
 	import re
 	import os
+	import verification
 
 	# If no utDate supplied, use the current value
 
 	if utDate == '':
 		utDate = datetime.datetime.utcnow().strftime('%Y%m%d')
 
+	verification.verify_date(utDate)
+
 	utDate = utDate.replace('-', '')
 	utDate = utDate.replace('/', '')
-	assert re.search('\d\d\d\d\d\d\d\d', utDate), 'unknown utDate format'
 
 #	system("logger -p local2.debug 'skyprobe.php: gathering CFHT Skyprobe data'")
 
@@ -49,6 +51,7 @@ def skyprobe(utDate='', dir='.'):
 
 	except:
 		print('url does not exist', url)
+#		Error to koawx
 		return
 
 	# Create HTML page

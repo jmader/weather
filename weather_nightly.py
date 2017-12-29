@@ -40,8 +40,6 @@ def weather_nightly(utDate='', wxDir='.', log_writer=''):
 
 		joinSeq = ('/h/nightly', str(i), '/', str(year), '/', month, '/', day)
 		nightlyDir = ''.join(joinSeq)
-#####
-		nightlyDir = './nightly' + str(i)
 		if not os.path.isdir(nightlyDir):
 			nightlyDir.replace('/h/', '/s/')
 			if not os.path.isdir(nightlyDir):

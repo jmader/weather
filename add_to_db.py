@@ -1,3 +1,4 @@
+import subprocess as sp
 import re
 
 def add_to_db(dbTable, utDate, field):
@@ -25,7 +26,7 @@ def add_to_db(dbTable, utDate, field):
 
 	# Construct call to add_to_db.php
 
-	joinSeq = ('add_to_db.php ', dbTable, ' ', utDate, ' ', field)
+	joinSeq = ('/kroot/archive/db/default/add_to_db.php ', dbTable, ' ', utDate, ' ', field)
 	cmd = ''.join(joinSeq)
-	print(cmd)
-#	sp.run(cmd)
+	proc = sp.Popen(cmd, shell=True, stdout=sp.PIPE)
+

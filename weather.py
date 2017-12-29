@@ -113,6 +113,9 @@ wn.weather_nightly(utDate, wxDir, log_writer)
 
 log_writer.info('weather.py calling make_nightly_plots.py')
 mn.make_nightly_plots(utDate, wxDir, log_writer)
+joinSeq = ('graphs="', datetime.utcnow().strftime('%Y%m%d %H:%M:%S'), '"')
+field = ''.join(joinSeq)
+adb.add_to_db('koawx', utDate, field)
 
 # Get CFHT Skyprobe plot
 
@@ -195,3 +198,6 @@ field = ''.join(joinSeq)
 adb.add_to_db('koawx', utDate, field)
 
 log_writer.info('weather.py complete for {}'.format(utDate))
+joinSeq = ('wx_complete="', datetime.utcnow().strftime('%Y%m%d %H:%M:%S'), '"')
+field = ''.join(joinSeq)
+adb.add_to_db('koawx', utDate, field)

@@ -1,4 +1,12 @@
-def get_dimm_data(utDate='', dir='.'):
+from datetime import datetime
+import requests
+import re
+import os
+import verification
+import urllib.request
+import add_to_db as adb
+
+def get_dimm_data(utDate='', dir='.', log_writer=''):
 	'''
 	Retrieve DIMM, MASS and MASSPRO data from Mauna Kea Weather Center
 
@@ -8,12 +16,8 @@ def get_dimm_data(utDate='', dir='.'):
 	@param dir: Directory to write data to (default is current directory)
 	'''
 
-	import datetime
-	import requests
-	import re
-	import os
-	import verification
-	import urllib.request
+	if log_writer:
+		log_writer.info('get_dimm_data.py started for {}'.format(utDate))
 
 	# If no utDate supplied, use the current value
 
@@ -27,6 +31,7 @@ def get_dimm_data(utDate='', dir='.'):
 	year = split[0]
 	month = split[1]
 	day = split[2]
+	dbDate = utDate
 	utDate = utDate.replace('-', '')
 
 	# Create directory
@@ -35,6 +40,9 @@ def get_dimm_data(utDate='', dir='.'):
 	dir = ''.join(joinSeq)
 	if not os.path.exists(dir):
 		os.makedirs(dir)
+
+	if log_writer:
+		log_writer.info('get_dimm_data.py creating massdimm.html')
 
 	joinSeq = (dir, '/massdimm.html')
 	writeFile = ''.join(joinSeq)
@@ -60,6 +68,9 @@ def get_dimm_data(utDate='', dir='.'):
 			joinSeq = (url, '/', file, '/', utDate, '.', file, '.dat')
 			newUrl = ''.join(joinSeq)
 
+			if log_writer:
+				log_writer.info('get_dimm_data.py retrieving data from {}'.format(newUrl))
+
 			# Connect to URL
 
 			response = requests.get(newUrl)
@@ -79,8 +90,8 @@ def get_dimm_data(utDate='', dir='.'):
 					fp2.write(response.text)
 				fp.write('<a href="./'+os.path.basename(writeFile)+'">'+os.path.basename(writeFile)+'<p>\n')
 			else:
-				print('No', file, 'data from MKWC for', utDate)
-#				Error to koawx
+				if log_writer:
+					log_writer.info('get_dimm_data.py no {} data for {}'.format(file, utDate))
 
 		# Get JPG plots
 
@@ -93,6 +104,8 @@ def get_dimm_data(utDate='', dir='.'):
 
 		for key, url in plots.items():
 			url = url.replace('YYYYMMDD', utDate)
+			if log_writer:
+				log_writer.info('get_dimm_data.py retrieving {}'.format(url))
 			try:
 				file = os.path.basename(url)
 				if 'analysis' in url:
@@ -103,8 +116,16 @@ def get_dimm_data(utDate='', dir='.'):
 				urllib.request.urlretrieve(url, writeFile)
 				fp.write('<a href="./'+file+'"><img src="'+file+'" width="750" title="'+file+'"><p>\n')
 			except:
-				print('url does not exist', url)
-#				error to koawx
+				if log_writer:
+					log_writer.info('get_dimm_data.py url does not exist - {}'.format(url))
 
 		fp.write('</body>\n')
 		fp.write('</html>')
+
+	if log_writer:
+		log_writer.info('get_dimm_data.py complete for {}'.format(utDate))
+
+	joinSeq = ('massdimm="', datetime.now().strftime('%Y%m%d %H:%M:%S'), '"')
+	field = ''.join(joinSeq)
+	adb.add_to_db('koawx', dbDate, field)
+

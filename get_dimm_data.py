@@ -125,7 +125,7 @@ def get_dimm_data(utDate='', dir='.', log_writer=''):
 	if log_writer:
 		log_writer.info('get_dimm_data.py complete for {}'.format(utDate))
 
-	joinSeq = ('massdimm="', datetime.utcnow().strftime('%Y%m%d %H:%M:%S'), '"')
+	joinSeq = ('massdimm="', datetime.now().strftime('%Y%m%d %H:%M:%S'), '"')
 	field = ''.join(joinSeq)
 	adb.add_to_db('koawx', dbDate, field)
 

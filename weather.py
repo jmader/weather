@@ -30,17 +30,20 @@ import add_to_db as adb
 # Runs at 2pm, so use now()
 
 utDate = datetime.now().strftime('%Y-%m-%d')
+wxDir = './test'
 
 # Usage can have 0 or 1 additional arguments
 
-assert len(argv) <= 2, 'Usage: weather.py [YYYY-MM-DD]'
+
+assert len(argv) <= 3, 'Usage: weather.py [wxDir] [YYYY-MM-DD]'
 
 # Parse UT date from argument list
 
-if len(argv) == 2:
-	utDate = argv[1]
-	utDate.replace('/', '-')
-	split = utDate.split('-')
+if len(argv) <= 3:
+	wxDir = argv[1]
+	if len(argv) == 3:
+		utDate = argv[2]
+		utDate.replace('/', '-')
 
 # Verify date, will exit if verification fails
 
@@ -48,8 +51,6 @@ verification.verify_date(utDate)
 
 # Archive directory
 
-wxDir = '/net/koaserver/koadata7'
-wxDir = './test'
 if not os.path.exists(wxDir):
 	os.makedirs(wxDir)
 

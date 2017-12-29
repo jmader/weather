@@ -1,10 +1,11 @@
 from datetime import datetime
 import os
 import shutil
-import re
+import subprocess as sp
 import verification
+import add_to_db as adb
 
-def weather_nightly(utDate='', wxDir='.'):
+def weather_nightly(utDate='', wxDir='.', log_writer=''):
 	'''
 	Copies /h (or /s) nightly data to archive location
 
@@ -20,6 +21,9 @@ def weather_nightly(utDate='', wxDir='.'):
 	if not wxDir:
 		exit
 
+	if log_writer:
+		log_writer.info('weather_nightly.py started for {}'.format(utDate))
+
 	verification.verify_date(utDate)
 
 	utDate = utDate.replace('/', '-')
@@ -28,25 +32,34 @@ def weather_nightly(utDate='', wxDir='.'):
 	month = utDate_split[1]
 	day = utDate_split[2]
 
-	for i in range(1,3):
-		dir = wxDir + '/nightly' + str(i)
+	error = 0
 
-#		system("logger -p local2.debug 'weather_nightly.php: weather_nightly.php $utdate $wx_dir'");
+	for i in range(1,3):
 
 		# Determine nightly location - /h or /s
 
-		nightlyDir = '/h/nightly' + str(i) + '/' + str(year) + '/' + month + '/' + day
+		joinSeq = ('/h/nightly', str(i), '/', str(year), '/', month, '/', day)
+		nightlyDir = ''.join(joinSeq)
+#####
 		nightlyDir = './nightly' + str(i)
 		if not os.path.isdir(nightlyDir):
 			nightlyDir.replace('/h/', '/s/')
 			if not os.path.isdir(nightlyDir):
-#				logger
-				exit
-		wxNewDir = wxDir + '/nightly' + str(i)
-#		system("logger -p local2.debug 'weather_nightly.php: Keck nightly$nightly directory is $nightlyDir'");
+				error = 1
+				if log_writer:
+					log_writer.error('weather_nightly.py nightly directory not found for K{}'.format(i))
+					joinSeq = ('nightly', str(i), '="ERROR"')
+					field = ''.join(joinSeq)
+					adb.add_to_db('koawx', utDate, field)
+				continue
+
+		joinSeq = (wxDir, '/nightly', str(i))
+		wxNewDir = ''.join(joinSeq)
 
 		# Copy the data.  Will also create the new directories.
 
+		if log_writer:
+			log_writer.info('weather_nightly.py copying nightly data from {}'.format(nightlyDir))
 		shutil.copytree(nightlyDir, wxNewDir)
 
 		# Go through and uncompress any .Z or .gz files
@@ -61,6 +74,11 @@ def weather_nightly(utDate='', wxDir='.'):
 				if cmd:
 					sp.run([cmd, dirpath+'/'+file])
 
-	# Update koa.koawx entry
+		# Update koa.koawx entry
 
-#	system("add_to_db.php koawx $dbdate nightly$nightly='$date'");
+		joinSeq = ('nightly', str(i), '="', datetime.utcnow().strftime('%Y%m%d %H:%M:%S'), '"')
+		field = ''.join(joinSeq)
+		adb.add_to_db('koawx', utDate, field)
+
+	if log_writer:
+		log_writer.info('weather_nightly.py complete for {}'.format(utDate))

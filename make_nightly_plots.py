@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates as md
 
-def make_nightly_plots(utDate, wxDir):
+def make_nightly_plots(utDate, wxDir, log_writer=''):
 	'''
 	Create plots of nightly weather and FWHM data
 
@@ -16,13 +16,18 @@ def make_nightly_plots(utDate, wxDir):
 	'''
 
 	if not wxDir or not os.path.exists(wxDir):
-		print('make_nightly_plots.py wxDir does not exist - ', wxDir)
+		if log_writer:
+			log_writer.error('make_nightly_plots.py wxDir does not exist - {}'.format(wxDir))
 		return
 
-	make_weather_plots(utDate, wxDir)
-	make_fwhm_plots(utDate, wxDir)
+	if log_writer:
+		log_writer.info('make_nightly_plots.py calling make_weather_plots')
+	make_weather_plots(utDate, wxDir, log_writer)
+	if log_writer:
+		log_writer.info('make_nightly_plots.py calling make_fwhm_plots')
+	make_fwhm_plots(utDate, wxDir, log_writer)
 
-def make_weather_plots(utDate, wxDir):
+def make_weather_plots(utDate, wxDir, log_writer=''):
 	'''
 	Create plots of nightly weather from envMet.arT
 
@@ -42,17 +47,18 @@ def make_weather_plots(utDate, wxDir):
 		# Nightly met file path
 
 		file = wxDir + '/nightly' + str(i) + '/envMet.arT'
-		print('make_nightly_plots.py creating plot for nightly ', i)
+		if log_writer:
+			log_writer.info('make_nightly_plots.py creating plots for nightly{}'.format(i))
 		if not os.path.exists(file):
-			print('make_nightly_plots.py file does not exist - ', file)
-			continue
-
+			if log_writer:
+				log_writer.error('make_nightly_plots.py file does not exist - {}'.format(file))
 		# Read the file and skip if error
 
 		try:
 			data = pd.read_csv(file, skiprows=[0,2])
 		except IOError as e:
-			print('make_nightly_plots.py unable to open file - ', file)
+			if log_writer:
+				log_writer.error('make_nightly_plots.py unable to open file = {}'.format(file))
 			continue
 
 		# Set column headers or default to column numbers
@@ -120,15 +126,20 @@ def make_weather_plots(utDate, wxDir):
 			plt.xlabel('Time')
 			plt.ylabel(yLabel[num])
 			plt.title(utDate)
-			plt.legend(fontsize=6)
+			if len(columns) > 1:
+				plt.legend(fontsize=6)
 			joinSeq = (wxDir, '/k', str(i), '_', files[num])
 			file = ''.join(joinSeq)
 			plt.savefig(file)
+			if log_writer:
+				log_writer.info('make_nightly_plots.py {} created'.format(file))
 
 	# Create the HTML page
 
 	joinSeq = (wxDir, '/keck_weather.html')
 	file = ''.join(joinSeq)
+	if log_writer:
+		log_writer.info('make_nightly_plots.py creating {}'.format(file))
 	images = ['kN_temperature.png', 'kN_humidity.png', 'kN_dewpoint.png', 'kN_pressure.png']
 	with open(file, 'w') as fp:
 		fp.write('<html>\n')
@@ -180,7 +191,7 @@ def make_weather_plots(utDate, wxDir):
 		fp.write('</html>\n')
 		fp.write('</body>\n')
 
-def make_fwhm_plots(utDate, wxDir):
+def make_fwhm_plots(utDate, wxDir, log_writer=''):
 	'''
 	Create plots of nightly weather from envFocus.arT
 
@@ -200,9 +211,11 @@ def make_fwhm_plots(utDate, wxDir):
 		# Nightly focus file path
 
 		file = wxDir + '/nightly' + str(i) + '/envFocus.arT'
-		print('make_nightly_plots.py creating plot for nightly ', i)
+		if log_writer:
+			log_writer.info('make_fwhm_plots.py creating fwhm plot for nightly{}'.format(i))
 		if not os.path.exists(file):
-			print('make_nightly_plots.py file does not exist - ', file)
+			if log_writer:
+				log_writer.error('make_fwhm_plots.py file does not exist - {}'.format(file))
 			continue
 
 		# Read the file and skip if error
@@ -210,7 +223,8 @@ def make_fwhm_plots(utDate, wxDir):
 		try:
 			data = pd.read_csv(file, skiprows=[0,2])
 		except IOError as e:
-			print('make_nightly_plots.py unable to open file - ', file)
+			if log_writer:
+				log_writer.error('make_fwhm_plots.py unable to open file - {}'.format(file))
 			continue
 
 		# Set column headers or default to column numbers
@@ -228,11 +242,7 @@ def make_fwhm_plots(utDate, wxDir):
 
 		# Remove *** values
 
-		for key, value in enumerate(data[keys[0]]):
-			try:
-				val = float(value)
-			except ValueError:
-				data[keys[0]][key] = 0.0
+		data.replace(['***'], [0.0], inplace=True)
 
 		# Format time data
 
@@ -265,11 +275,15 @@ def make_fwhm_plots(utDate, wxDir):
 			joinSeq = (wxDir, '/k', str(i), '_', files[num])
 			file = ''.join(joinSeq)
 			plt.savefig(file)
+			if log_writer:
+				log_writer.info('make_fwhm_plots.py {} created'.format(file))
 
 	# Create the HTML page
 
 	joinSeq = (wxDir, '/keck_fwhm.html')
 	file = ''.join(joinSeq)
+	if log_writer:
+		log_writer.info('make_fwhm_plots.py creating {}'.format(file))
 	images = ['kN_fwhm.png']
 	with open(file, 'w') as fp:
 		fp.write('<html>\n')

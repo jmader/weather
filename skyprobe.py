@@ -1,4 +1,10 @@
-def skyprobe(utDate='', dir='.'):
+from datetime import datetime
+import add_to_db as adb
+import urllib.request
+import os
+import verification
+
+def skyprobe(utDate='', dir='.', log_writer=''):
 	'''
 	Retrieve skyprobe image from CFHT
 
@@ -8,11 +14,8 @@ def skyprobe(utDate='', dir='.'):
 	@param dir: Directory to write data to (default is current directory)
 	'''
 
-	import datetime
-	import urllib.request
-	import re
-	import os
-	import verification
+	if log_writer:
+		log_writer.info('skyprobe.py started for {}'.format(utDate))
 
 	# If no utDate supplied, use the current value
 
@@ -21,18 +24,18 @@ def skyprobe(utDate='', dir='.'):
 
 	verification.verify_date(utDate)
 
+	utDate = utDate.replace('/', '-')
+	dbDate = utDate
 	utDate = utDate.replace('-', '')
-	utDate = utDate.replace('/', '')
 
-#	system("logger -p local2.debug 'skyprobe.php: gathering CFHT Skyprobe data'")
+	if log_writer:
+		log_writer.info('skyprobe.py gathering data from CFHT')
 
 	# URL to copy
 
 	url = 'http://nenue.cfht.hawaii.edu/Instruments/Elixir/skyprobe/archive/mcal_'
 	joinSeq = (url, utDate, '.png')
 	url = ''.join(joinSeq)
-
-	# Connect to URL
 
 	# Create directory
 
@@ -48,15 +51,19 @@ def skyprobe(utDate='', dir='.'):
 
 	try:
 		urllib.request.urlretrieve(url, writeFile)
-
 	except:
-		print('url does not exist', url)
-#		Error to koawx
+		if log_writer:
+			log_writer.info('skyprobe.py url does not exist - {}'.format(url))
+			joinSeq = ('skyprobe="', datetime.utcnow().strftime('%Y%m%d %H:%M:%S'), '"')
+			field = ''.join(joinSeq)
+			adb.add_to_db('koawx', dbDate, field)
 		return
 
 	# Create HTML page
 
-#	system("logger -p local2.debug 'skyprobe.php: creating skyprobe.html'");
+	if log_writer:
+		log_writer.info('skyprobe.py creating skyprobe.html')
+
 	joinSeq = (dir, '/skyprobe/skyprobe.html')
 	writeFile = ''.join(joinSeq)
 	with open(writeFile, 'w') as fp:
@@ -70,5 +77,9 @@ def skyprobe(utDate='', dir='.'):
 
 	# Update koawx entry
 
-#	system("add_to_db.php koawx $dbdate skyprobe='$date'");
+	if log_writer:
+		log_writer.info('skyprobe.py complete for {}'.format(utDate))
+	joinSeq = ('skyprobe="', datetime.utcnow().strftime('%Y%m%d %H:%M:%S'), '"')
+	field = ''.join(joinSeq)
+	adb.add_to_db('koawx', dbDate, field)
 

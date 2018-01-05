@@ -1,5 +1,5 @@
 import smtplib
-from email.mim.text import MIMEText
+from email.mime.text import MIMEText
 
 def send_email(toEmail, subject, message, log_writer=''):
 	'''

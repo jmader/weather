@@ -49,6 +49,9 @@ def weather_nightly(utDate='', wxDir='.', log_writer=''):
 					joinSeq = ('nightly', str(i), '="ERROR"')
 					field = ''.join(joinSeq)
 					adb.add_to_db('koawx', utDate, field)
+					message = ('Nightly directory not found for K', str(i))
+					message = ''.join(message)
+					se.send_email('koaadmin@keck.hawaii.edu', 'weather.py - no nightly directory', message, log_writer)
 				continue
 
 		joinSeq = (wxDir, '/nightly', str(i))

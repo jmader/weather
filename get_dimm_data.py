@@ -121,7 +121,7 @@ def get_dimm_data(utDate='', dir='.', log_writer=''):
 					log_writer.info('get_dimm_data.py url does not exist - {}'.format(url))
 				message = ('The following URL does not exist', '\n\n', url)
 				message = ''.join(message)
-				se.send_email('koaadmin@keck.hawaii.edu', 'weather.py - failed URL', message)
+				se.send_email('koaadmin@keck.hawaii.edu', 'weather.py - failed URL', message, log_writer)
 
 		fp.write('</body>\n')
 		fp.write('</html>')

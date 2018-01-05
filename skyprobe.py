@@ -3,6 +3,7 @@ import add_to_db as adb
 import urllib.request
 import os
 import verification
+import send_email as se
 
 def skyprobe(utDate='', dir='.', log_writer=''):
 	'''
@@ -57,6 +58,9 @@ def skyprobe(utDate='', dir='.', log_writer=''):
 			joinSeq = ('skyprobe="', datetime.utcnow().strftime('%Y%m%d %H:%M:%S'), '"')
 			field = ''.join(joinSeq)
 			adb.add_to_db('koawx', dbDate, field)
+			message = ('The following URL does not exist', '\n\n', url)
+			message = ''.join(message)
+			se.send_email('koaadmin@keck.hawaii.edu', 'weather.py - failed URL', message, log_writer)
 		return
 
 	# Create HTML page

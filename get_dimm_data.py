@@ -5,6 +5,7 @@ import os
 import verification
 import urllib.request
 import add_to_db as adb
+import send_email as se
 
 def get_dimm_data(utDate='', dir='.', log_writer=''):
 	'''
@@ -118,6 +119,9 @@ def get_dimm_data(utDate='', dir='.', log_writer=''):
 			except:
 				if log_writer:
 					log_writer.info('get_dimm_data.py url does not exist - {}'.format(url))
+				message = ('The following URL does not exist', '\n\n', url)
+				message = ''.join(message)
+				se.send_email('koaadmin@keck.hawaii.edu', 'weather.py - failed URL', message, log_writer)
 
 		fp.write('</body>\n')
 		fp.write('</html>')

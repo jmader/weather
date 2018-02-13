@@ -18,7 +18,7 @@ def send_email(toEmail, subject, message, log_writer=''):
 	msg = MIMEText(message)
 	msg['Subject'] = subject
 	msg['To'] = toEmail
-	msg['From'] = 'koaadmin@keck.hawaiii.edu'
+	msg['From'] = ''
 
 	# Send the email
 

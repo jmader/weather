@@ -1,15 +1,25 @@
 #---------------------------------------------------------------
 #
-# Usage weather.csh YYYY/MM/DD
+# Gathers nightly weather, seeing and other information from
+# various sources.  This information is archived in KOA for
+# users to view at any time.
+#
+# Usage: weather.py wxDir [YYYY-MM-DD]
+#
+# @param wxDir: output directory location
+# @type wxDir: string
+# @param YYYY-MM-DD: UT date
+# @type YYYY-MM-DD: string
+#
+# Log is wxDir/weather_utDate.log
+#
+# Calls:
+# - weather_nightly(utDate, wxDir, log_writer)
+# - make_nightly_plots(utDate, wxDir, log_writer)
+# - skyprobe(utDate, wxDir, log_writer)
+# - get_dimm_data(utDate, wxDir, log_writer)
 #
 # Written by Jeff Mader
-#
-# This is the backbone for gathering all weather and
-# ancillary information.  It has been stripped out of the
-# instrument processing to avoid gathering duplicate data
-# (i.e. NIRSPEC and NIRC2 processing have same ancillary data.
-#
-# 20101214 JM  Original version
 #
 #---------------------------------------------------------------
 
@@ -24,18 +34,19 @@ import os
 import skyprobe as sky
 import get_dimm_data as dimm
 import hashlib
-import add_to_db as adb
+import send_email as se
+import urllib.request
+import json
+import update_wx_db as wxdb
 
 # Default UT date is today
 # Runs at 2pm, so use now()
 
 utDate = datetime.now().strftime('%Y-%m-%d')
-wxDir = './test'
 
 # Usage can have 0 or 1 additional arguments
 
-
-assert len(argv) <= 3, 'Usage: weather.py [wxDir] [YYYY-MM-DD]'
+assert len(argv) >= 2, 'Usage: weather.py wxDir [YYYY-MM-DD]'
 
 # Parse UT date from argument list
 
@@ -54,9 +65,10 @@ verification.verify_date(utDate)
 if not os.path.exists(wxDir):
 	os.makedirs(wxDir)
 
+user = os.getlogin()
+
 # Setup logging
 
-user = os.getlogin()
 joinSeq = ('weather <', user, '>')
 writerName = ''.join(joinSeq)
 log_writer = lg.getLogger(writerName)
@@ -82,9 +94,8 @@ log_writer.info('weather.py started for {}'.format(utDate))
 
 # koa.koawx entry
 
-joinSeq = ('utdate="', utDate, '"')
-field = ''.join(joinSeq)
-adb.add_to_db('koawx', utDate, field)
+sendUrl = ''.join(('cmd=updateWxDb&utdate=', utDate, '&column=utdate&value=', utDate))
+wxdb.updateWxDb(sendUrl, log_writer)
 
 # Add utdate to wxDir
 
@@ -114,9 +125,8 @@ wn.weather_nightly(utDate, wxDir, log_writer)
 
 log_writer.info('weather.py calling make_nightly_plots.py')
 mn.make_nightly_plots(utDate, wxDir, log_writer)
-joinSeq = ('graphs="', datetime.utcnow().strftime('%Y%m%d %H:%M:%S'), '"')
-field = ''.join(joinSeq)
-adb.add_to_db('koawx', utDate, field)
+sendUrl = ''.join(('cmd=updateWxDb&utdate=', utDate, '&column=graphs&value=', datetime.utcnow().strftime('%Y%m%d+%H:%M:%S')))
+wxdb.updateWxDb(sendUrl, log_writer)
 
 # Get CFHT Skyprobe plot
 
@@ -172,33 +182,33 @@ with open(md5sumFile, 'w') as fp:
 
 # koa.koawx entry
 
-joinSeq = ('files="', str(totalFiles), '"')
-field = ''.join(joinSeq)
-adb.add_to_db('koawx', utDate, field)
+sendUrl = ''.join(('cmd=updateWxDb&utdate=', utDate, '&column=files&value=', str(totalFiles)))
+wxdb.updateWxDb(sendUrl, log_writer)
 
 totalSize = "{0:.3f}".format(totalSize)
-joinSeq = ('size="', str(totalSize), '"')
-field = ''.join(joinSeq)
-adb.add_to_db('koawx', utDate, field)
+sendUrl = ''.join(('cmd=updateWxDb&utdate=', utDate, '&column=size&value=', str(totalSize)))
+wxdb.updateWxDb(sendUrl, log_writer)
 
 # Transfer data to NExScI
 
 log_writer.info('weather.py transferring data to NExScI')
 
 #/kroot/archive/koaxfr/default2/koaxfr.php weather $wx_dir rsync
+to = 'koaxfr@koadropbox.ipac.caltech.edu:/local/home/koaxfr/stage/WEATHER'
+#rsync -avz wxDir to
 
 # Send email to NExScI
 
 log_writer.info('weather.py sending email to NExScI')
-#set subject = "weather $utdate"
-#set body = "weather data successfully transferred to koaxfr"
+subject = ('weather ', utDate.replace('-', ''))
+subject = ''.join(subject)
+message = 'weather data successfully transferred to koaxfr'
 #set email = "koaing-newops@ipac.caltech.edu"
-#echo $body | mailx -s "$subject" $email
-joinSeq = ('data_sent="', datetime.utcnow().strftime('%Y%m%d %H:%M:%S'), '"')
-field = ''.join(joinSeq)
-adb.add_to_db('koawx', utDate, field)
+se.send_email('koaadmin@keck.hawaii.edu', subject, message, log_writer)
 
+sendUrl = ''.join(('cmd=updateWxDb&utdate=', utDate, '&column=data_sent&value=', datetime.utcnow().strftime('%Y%m%d+%H:%M:%S')))
+wxdb.updateWxDb(sendUrl, log_writer)
+
+sendUrl = ''.join(('cmd=updateWxDb&utdate=', utDate, '&column=wx_complete&value=', datetime.utcnow().strftime('%Y%m%d+%H:%M:%S')))
+wxdb.updateWxDb(sendUrl, log_writer)
 log_writer.info('weather.py complete for {}'.format(utDate))
-joinSeq = ('wx_complete="', datetime.utcnow().strftime('%Y%m%d %H:%M:%S'), '"')
-field = ''.join(joinSeq)
-adb.add_to_db('koawx', utDate, field)

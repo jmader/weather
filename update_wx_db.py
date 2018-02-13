@@ -20,7 +20,6 @@ def updateWxDb(sendUrl, log_writer=''):
 	url = 'https://www.keck.hawaii.edu/software/db_api/koa.php?'
 
 	myHash = hashlib.md5(user.encode('utf-8')).hexdigest()
-	myHash = hashlib.md5(b'koaadmin').hexdigest()
 	sendUrl = ''.join((url, sendUrl, '&hash=', myHash))
 
 	if log_writer:

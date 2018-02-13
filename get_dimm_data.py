@@ -4,8 +4,7 @@ import re
 import os
 import verification
 import urllib.request
-import add_to_db as adb
-import send_email as se
+import update_wx_db as wxdb
 
 def get_dimm_data(utDate='', dir='.', log_writer=''):
 	'''
@@ -119,17 +118,14 @@ def get_dimm_data(utDate='', dir='.', log_writer=''):
 			except:
 				if log_writer:
 					log_writer.info('get_dimm_data.py url does not exist - {}'.format(url))
-				message = ('The following URL does not exist', '\n\n', url)
-				message = ''.join(message)
-				se.send_email('koaadmin@keck.hawaii.edu', 'weather.py - failed URL', message, log_writer)
+				sendUrl = ''.join(('cmd=updateWxDb&utdate=', dbDate, '&column=massdimm&value=ERROR'))
+				wxdb.updateWxDb(sendUrl, log_writer)
 
 		fp.write('</body>\n')
 		fp.write('</html>')
 
 	if log_writer:
 		log_writer.info('get_dimm_data.py complete for {}'.format(utDate))
-
-	joinSeq = ('massdimm="', datetime.now().strftime('%Y%m%d %H:%M:%S'), '"')
-	field = ''.join(joinSeq)
-	adb.add_to_db('koawx', dbDate, field)
+	sendUrl = ''.join(('cmd=updateWxDb&utdate=', dbDate, '&column=massdimm&value=', datetime.utcnow().strftime('%Y%m%d+%H:%M:%S')))
+	wxdb.updateWxDb(sendUrl, log_writer)
 

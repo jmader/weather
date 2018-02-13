@@ -3,7 +3,7 @@ import os
 import shutil
 import subprocess as sp
 import verification
-import add_to_db as adb
+import update_wx_db as wxdb
 
 def weather_nightly(utDate='', wxDir='.', log_writer=''):
 	'''
@@ -46,12 +46,8 @@ def weather_nightly(utDate='', wxDir='.', log_writer=''):
 				error = 1
 				if log_writer:
 					log_writer.error('weather_nightly.py nightly directory not found for K{}'.format(i))
-					joinSeq = ('nightly', str(i), '="ERROR"')
-					field = ''.join(joinSeq)
-					adb.add_to_db('koawx', utDate, field)
-					message = ('Nightly directory not found for K', str(i))
-					message = ''.join(message)
-					se.send_email('koaadmin@keck.hawaii.edu', 'weather.py - no nightly directory', message, log_writer)
+					sendUrl = ''.join(('cmd=updateWxDb&utdate=', utDate, '&column=nightly', str(i), '&value=ERROR'))
+					wxdb.updateWxDb(sendUrl, log_writer)
 				continue
 
 		joinSeq = (wxDir, '/nightly', str(i))
@@ -77,9 +73,8 @@ def weather_nightly(utDate='', wxDir='.', log_writer=''):
 
 		# Update koa.koawx entry
 
-		joinSeq = ('nightly', str(i), '="', datetime.utcnow().strftime('%Y%m%d %H:%M:%S'), '"')
-		field = ''.join(joinSeq)
-		adb.add_to_db('koawx', utDate, field)
+		sendUrl = ''.join(('cmd=updateWxDb&utdate=', utDate, '&column=nightly', str(i), '&value=', datetime.utcnow().strftime('%Y%m%d+%H:%M:%S')))
+		wxdb.updateWxDb(sendUrl, log_writer)
 
 	if log_writer:
 		log_writer.info('weather_nightly.py complete for {}'.format(utDate))

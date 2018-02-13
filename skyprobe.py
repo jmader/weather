@@ -1,9 +1,8 @@
 from datetime import datetime
-import add_to_db as adb
 import urllib.request
 import os
 import verification
-import send_email as se
+import update_wx_db as wxdb
 
 def skyprobe(utDate='', dir='.', log_writer=''):
 	'''
@@ -55,12 +54,8 @@ def skyprobe(utDate='', dir='.', log_writer=''):
 	except:
 		if log_writer:
 			log_writer.info('skyprobe.py url does not exist - {}'.format(url))
-			joinSeq = ('skyprobe="', datetime.utcnow().strftime('%Y%m%d %H:%M:%S'), '"')
-			field = ''.join(joinSeq)
-			adb.add_to_db('koawx', dbDate, field)
-			message = ('The following URL does not exist', '\n\n', url)
-			message = ''.join(message)
-			se.send_email('koaadmin@keck.hawaii.edu', 'weather.py - failed URL', message, log_writer)
+			sendUrl = ''.join(('cmd=updateWxDb&utdate=', dbDate, '&column=skyprobe&value=ERROR'))
+			wxdb.updateWxDb(sendUrl, log_writer)
 		return
 
 	# Create HTML page
@@ -83,7 +78,5 @@ def skyprobe(utDate='', dir='.', log_writer=''):
 
 	if log_writer:
 		log_writer.info('skyprobe.py complete for {}'.format(utDate))
-	joinSeq = ('skyprobe="', datetime.utcnow().strftime('%Y%m%d %H:%M:%S'), '"')
-	field = ''.join(joinSeq)
-	adb.add_to_db('koawx', dbDate, field)
-
+	sendUrl = ''.join(('cmd=updateWxDb&utdate=', dbDate, '&column=skyprobe&value=', datetime.utcnow().strftime('%Y%m%d+%H:%M:%S')))
+	wxdb.updateWxDb(sendUrl, log_writer)

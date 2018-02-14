@@ -118,7 +118,7 @@ def get_dimm_data(utDate='', dir='.', log_writer=''):
 			except:
 				if log_writer:
 					log_writer.info('get_dimm_data.py url does not exist - {}'.format(url))
-				sendUrl = ''.join(('cmd=updateWxDb&utdate=', dbDate, '&column=massdimm&value=ERROR'))
+				sendUrl = ''.join(('cmd=updateWxDb&utdate=', dbDate, '&column=cfht_seeing&value=ERROR'))
 				wxdb.updateWxDb(sendUrl, log_writer)
 
 		fp.write('</body>\n')
@@ -126,6 +126,6 @@ def get_dimm_data(utDate='', dir='.', log_writer=''):
 
 	if log_writer:
 		log_writer.info('get_dimm_data.py complete for {}'.format(utDate))
-	sendUrl = ''.join(('cmd=updateWxDb&utdate=', dbDate, '&column=massdimm&value=', datetime.utcnow().strftime('%Y%m%d+%H:%M:%S')))
+	sendUrl = ''.join(('cmd=updateWxDb&utdate=', dbDate, '&column=cfht_seeing&value=', datetime.utcnow().strftime('%Y%m%d+%H:%M:%S')))
 	wxdb.updateWxDb(sendUrl, log_writer)
 

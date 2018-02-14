@@ -34,7 +34,6 @@ import os
 import skyprobe as sky
 import get_dimm_data as dimm
 import hashlib
-import send_email as se
 import urllib.request
 import json
 import update_wx_db as wxdb
@@ -150,7 +149,7 @@ with open(file, 'w') as fp:
 	fp.write('<title>'+utDate+' Weather Data</title>\n')
 	fp.write('<p><a href="keck_weather.html">WMKO Weather Data Plots</a>\n')
 	fp.write('<p><a href="keck_fwhm.html">WMKO Guide Star FWHM Plots</a>\n')
-	fp.write('<p><a href="skyprobe/skyprobe.html">SkyProbe @ CFHT:: Atmospheric Attenuation</a>\n')
+	fp.write('<p><a href="skyprobe/skyprobe.html">SkyProbe @ CFHT: Atmospheric Attenuation</a>\n')
 	fp.write('<p><a href="massdimm/massdimm.html">CFHT Seeing and Mass Profile</a>\n')
 	fp.write('</html>\n')
 	fp.write('</body>\n')
@@ -193,18 +192,9 @@ wxdb.updateWxDb(sendUrl, log_writer)
 
 log_writer.info('weather.py transferring data to NExScI')
 
-#/kroot/archive/koaxfr/default2/koaxfr.php weather $wx_dir rsync
-to = 'koaxfr@koadropbox.ipac.caltech.edu:/local/home/koaxfr/stage/WEATHER'
-#rsync -avz wxDir to
-
 # Send email to NExScI
 
 log_writer.info('weather.py sending email to NExScI')
-subject = ('weather ', utDate.replace('-', ''))
-subject = ''.join(subject)
-message = 'weather data successfully transferred to koaxfr'
-#set email = "koaing-newops@ipac.caltech.edu"
-se.send_email('koaadmin@keck.hawaii.edu', subject, message, log_writer)
 
 sendUrl = ''.join(('cmd=updateWxDb&utdate=', utDate, '&column=data_sent&value=', datetime.utcnow().strftime('%Y%m%d+%H:%M:%S')))
 wxdb.updateWxDb(sendUrl, log_writer)

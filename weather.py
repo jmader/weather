@@ -37,6 +37,7 @@ import hashlib
 import urllib.request
 import json
 import update_wx_db as wxdb
+import koaxfr
 
 # Default UT date is today
 # Runs at 2pm, so use now()
@@ -191,10 +192,7 @@ wxdb.updateWxDb(sendUrl, log_writer)
 # Transfer data to NExScI
 
 log_writer.info('weather.py transferring data to NExScI')
-
-# Send email to NExScI
-
-log_writer.info('weather.py sending email to NExScI')
+koaxfr.koaxfr(utDate, wxDir)
 
 sendUrl = ''.join(('cmd=updateWxDb&utdate=', utDate, '&column=data_sent&value=', datetime.utcnow().strftime('%Y%m%d+%H:%M:%S')))
 wxdb.updateWxDb(sendUrl, log_writer)

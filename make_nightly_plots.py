@@ -56,6 +56,10 @@ def make_weather_plots(utDate, wxDir, log_writer=''):
 
 		try:
 			data = pd.read_csv(file, skiprows=[0,2])
+			# Replace possible bad values
+			data.replace(' ***', '0.00', inplace=True)
+			data.replace(-100.0000, 0.00, inplace=True)
+			data.replace(999.0000, 0.00, inplace=True)
 		except IOError as e:
 			if log_writer:
 				log_writer.error('make_nightly_plots.py unable to open file = {}'.format(file))
@@ -118,7 +122,7 @@ def make_weather_plots(utDate, wxDir, log_writer=''):
 				xData = data[hst_keys[1]].index[test]
 				yData = data[value].index[test]
 				newData = np.array([data[hst_keys[1]][xData], data[value][yData]])
-				plt.plot(newData[0], newData[1], label=legend[num][key])
+				plt.plot(newData[0], list(newData[1]), label=legend[num][key])
 
 			ax = plt.gca()
 			xfmt = md.DateFormatter('%H:%M')
@@ -222,6 +226,8 @@ def make_fwhm_plots(utDate, wxDir, log_writer=''):
 
 		try:
 			data = pd.read_csv(file, skiprows=[0,2])
+			# Replace possible bad values
+			data.replace(' ***', '0.00', inplace=True)
 		except IOError as e:
 			if log_writer:
 				log_writer.error('make_fwhm_plots.py unable to open file - {}'.format(file))

@@ -2,6 +2,7 @@ import os
 import hashlib
 import urllib.request
 import json
+import configparser
 
 def updateWxDb(sendUrl, log_writer=''):
     """
@@ -17,7 +18,10 @@ def updateWxDb(sendUrl, log_writer=''):
 
     # Database access URL
 
-    url = 'https://www.keck.hawaii.edu/software/db_api/koa.php?'
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    config = configparser.ConfigParser()
+    config.read(dir_path+'/config.live.ini')
+    url = config['API']['KOAAPI']
 
     myHash = hashlib.md5(user.encode('utf-8')).hexdigest()
     sendUrl = ''.join((url, sendUrl, '&hash=', myHash))

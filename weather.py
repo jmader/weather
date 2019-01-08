@@ -39,6 +39,12 @@ import urllib.request
 import json
 import update_wx_db as wxdb
 import koaxfr
+import configparser
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
+config = configparser.ConfigParser()
+config.read(dir_path+'/config.live.ini')
+emailError = config['KOAXFR']['EMAILERROR']
 
 # Default UT date is today
 # Runs at 2pm, so use now()
@@ -148,7 +154,6 @@ dimm.get_dimm_data(utDate, wxDir, log_writer)
 
 # Read template html page
 
-dir_path = os.path.dirname(os.path.realpath(__file__))
 lines = []
 utDate2 = utDate.replace('-', '')
 with open(dir_path+'/template.html', 'r') as fp:
@@ -229,5 +234,5 @@ with open(logFile, 'r') as fp:
 
 message = ''.join((str(error), ' errors\n\n', message))
 if message:
-    koaxfr.send_email('jmader@keck.hawaii.edu', subject, message, log_writer)
+    koaxfr.send_email(emailError, subject, message, log_writer)
 

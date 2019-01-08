@@ -31,6 +31,7 @@ import subprocess as sp
 import weather_nightly as wn
 import make_nightly_plots as mn
 import os
+from shutil import copyfile
 import skyprobe as sky
 import get_dimm_data as dimm
 import hashlib
@@ -50,25 +51,18 @@ assert len(argv) >= 2, 'Usage: weather.py wxDir [YYYY-MM-DD]'
 
 # Parse UT date from argument list
 
-if len(argv) <= 3:
-	wxDir = argv[1]
-	if len(argv) == 3:
-		utDate = argv[2]
-		utDate.replace('/', '-')
+if len(argv) >= 2:
+    wxDir = argv[1]
+    if len(argv) == 3:
+        utDate = argv[2].replace('/', '-')
 
 # Verify date, will exit if verification fails
 
 verification.verify_date(utDate)
 
-# Archive directory
-
-if not os.path.exists(wxDir):
-	os.makedirs(wxDir)
-
-user = os.getlogin()
-
 # Setup logging
 
+user = os.getlogin()
 joinSeq = ('weather <', user, '>')
 writerName = ''.join(joinSeq)
 log_writer = lg.getLogger(writerName)
@@ -92,6 +86,15 @@ log_writer.addHandler(log_handler)
 
 log_writer.info('weather.py started for {}'.format(utDate))
 
+# Archive directory
+
+if not os.path.exists(wxDir):
+    try:
+        os.makedirs(wxDir)
+    except:
+        log_writer.error('weather.py could not create {}'.format(wxDir))
+        exit()
+
 # koa.koawx entry
 
 sendUrl = ''.join(('cmd=updateWxDb&utdate=', utDate, '&column=utdate&value=', utDate))
@@ -102,7 +105,11 @@ wxdb.updateWxDb(sendUrl, log_writer)
 joinSeq = (wxDir, '/', utDate.replace('-', ''))
 wxDir = ''.join(joinSeq)
 if not os.path.exists(wxDir):
-	os.makedirs(wxDir)
+    try:
+        os.makedirs(wxDir)
+    except:
+        log_writer.error('weather.py could not create {}'.format(wxDir))
+        exit()
 
 log_writer.info('weather.py using directory {}'.format(wxDir))
 log_writer.info('weather.py creating wx.LOC')
@@ -114,7 +121,7 @@ locFile = ''.join(joinSeq)
 joinSeq = ('Started, see ', logFile)
 line = ''.join(joinSeq)
 with open(locFile, 'w') as fp:
-	fp.write(line)
+    fp.write(line)
 
 # Call weather_nightly to create nightly# subdirectories
 
@@ -138,6 +145,17 @@ sky.skyprobe(utDate, wxDir, log_writer)
 log_writer.info('weather.py calling get_dimm_data.py')
 dimm.get_dimm_data(utDate, wxDir, log_writer)
 
+
+# Read template html page
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
+lines = []
+utDate2 = utDate.replace('-', '')
+with open(dir_path+'/template.html', 'r') as fp:
+    l = fp.read().replace('YYYY-MM-DD', utDate)
+    l = l.replace('YYYYMMDD', utDate2)
+    lines.append(l)
+
 # Create the main html page
 
 log_writer.info('weather.py creating index.html')
@@ -145,15 +163,12 @@ log_writer.info('weather.py creating index.html')
 joinSeq = (wxDir, '/index.html')
 file = ''.join(joinSeq)
 with open(file, 'w') as fp:
-	fp.write('<html>\n')
-	fp.write('<body>\n')
-	fp.write('<title>'+utDate+' Weather Data</title>\n')
-	fp.write('<p><a href="keck_weather.html">WMKO Weather Data Plots</a>\n')
-	fp.write('<p><a href="keck_fwhm.html">WMKO Guide Star FWHM Plots</a>\n')
-	fp.write('<p><a href="skyprobe/skyprobe.html">SkyProbe @ CFHT: Atmospheric Attenuation</a>\n')
-	fp.write('<p><a href="massdimm/massdimm.html">CFHT Seeing and Mass Profile</a>\n')
-	fp.write('</html>\n')
-	fp.write('</body>\n')
+    for l in lines:
+        fp.write(l)
+
+# Copy header files to release directory
+copyfile(dir_path+'/header.css', wxDir+'/header.css')
+copyfile(dir_path+'/header.js', wxDir+'/header.js')
 
 # All done, remove LOC file
 
@@ -167,18 +182,18 @@ totalSize = 0
 joinSeq = (wxDir, '/weather', utDate.replace('-', ''), '.md5sum')
 md5sumFile = ''.join(joinSeq)
 with open(md5sumFile, 'w') as fp:
-	for root, dirs, files in os.walk(wxDir):
-		totalFiles += len(files)
-		for file in files:
-			if file in md5sumFile:
-				continue
-			joinSeq = (root, '/', file)
-			fullPath = ''.join(joinSeq)
-			md = hashlib.md5(open(fullPath, 'rb').read()).hexdigest()
-			joinSeq = (md, '  ', fullPath.replace(wxDir, '.'), '\n')
-			md = ''.join(joinSeq)
-			fp.write(md)
-			totalSize += os.path.getsize(fullPath) / 1000000.0
+    for root, dirs, files in os.walk(wxDir):
+        totalFiles += len(files)
+        for file in files:
+            if file in md5sumFile:
+                continue
+            joinSeq = (root, '/', file)
+            fullPath = ''.join(joinSeq)
+            md = hashlib.md5(open(fullPath, 'rb').read()).hexdigest()
+            joinSeq = (md, '  ', fullPath.replace(wxDir, '.'), '\n')
+            md = ''.join(joinSeq)
+            fp.write(md)
+            totalSize += os.path.getsize(fullPath) / 1000000.0
 
 # koa.koawx entry
 
@@ -200,3 +215,19 @@ wxdb.updateWxDb(sendUrl, log_writer)
 sendUrl = ''.join(('cmd=updateWxDb&utdate=', utDate, '&column=wx_complete&value=', datetime.utcnow().strftime('%Y%m%d+%H:%M:%S')))
 wxdb.updateWxDb(sendUrl, log_writer)
 log_writer.info('weather.py complete for {}'.format(utDate))
+
+# Send log contents
+
+subject = ' '.join(('WEATHER',utDate))
+message = ''
+error = 0
+with open(logFile, 'r') as fp:
+    for line in fp:
+        if 'ERROR' in line:
+            error += 1
+        message = ''.join((message, line))
+
+message = ''.join((str(error), ' errors\n\n', message))
+if message:
+    koaxfr.send_email('jmader@keck.hawaii.edu', subject, message, log_writer)
+

@@ -1,3 +1,3 @@
-# weather
+# Weather
 
 Retrieve weather information from various sites on Mauna Kea

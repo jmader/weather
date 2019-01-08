@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="https://cdn.pydata.org/bokeh/release/bokeh-0.13.0.min.css">
+<link rel="stylesheet" href="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.13.0.min.css">
+<link rel="stylesheet" href="https://cdn.pydata.org/bokeh/release/bokeh-tables-0.13.0.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+<link rel="stylesheet" href="./header.css">
+<style>
+.button {
+    background-color:lightgreen;
+    border: 2px solid #000000;
+    font-size: 10px;
+    padding: 2px 3px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    width:60px;
+}
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<title>YYYY-MM-DD Weather Data</title>
+</head>
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-0.13.0.min.js" type="text/javascript"></script>
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.13.0.min.js" type="text/javascript"></script>
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-tables-0.13.0.min.js" type="text/javascript"></script>
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-gl-0.13.0.min.js" type="text/javascript"></script>
+<script src="https://code.jquery.com/jquery-2.1.4.min.js" type="text/javascript"></script>
+<script src="https://code.jquery.com/ui/1.10.4/jquery-ui.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.20/require.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js" type="text/javascript"></script>
+<script src="./header.js" type="text/javascript"></script>
+<script>
+function show_hide_div(name)
+{
+    var div = document.getElementById(name);
+    div.style.display == 'none' ? div.style.display = 'inline' : div.style.display = 'none';
+    var button = document.getElementById(name+'button');
+    div.style.display == 'none' ? button.innerText = 'Show' : button.innerText = 'Hide';
+}
+</script>
+<body style='background-color: lightblue; padding:10px;'>
+<div style='clear:both'></div>
+<a href='https://koa.ipac.caltech.edu/cgi-bin/KOA/nph-KOAlogin'>
+    <img src='https://koa.ipac.caltech.edu/include/koaheader.jpg'></img>
+</a>
+<h1>Weather data for YYYY-MM-DD</h1>
+<p>
+<h5>
+    Keck 1 Weather Plots
+    <button id='k1envbutton' class='button' onclick='show_hide_div("k1env")'>Show</button>
+</h5>
+<div style='clear:both'></div>
+<div id='k1env' style='display:none'>
+    <div id='k1_temperature' style='float:left'></div>
+    <div id='k1_humidity' style='float:left'></div>
+    <div style='clear:both'></div>
+    <div id='k1_pressure' style='float:left'></div>
+    <div id='k1_dewpoint' style='float:left'></div>
+</div>
+<div style='clear:both'></div>
+<h5>
+    Keck 2 Weather Plots
+    <button id='k2envbutton' class='button' onclick='show_hide_div("k2env")'>Show</button>
+</h5>
+<div style='clear:both'></div>
+<div id='k2env' style='display:none'>
+    <div id='k2_temperature' style='float:left'></div>
+    <div id='k2_humidity' style='float:left'></div>
+    <div style='clear:both'></div>
+    <div id='k2_pressure' style='float:left'></div>
+    <div id='k2_dewpoint' style='float:left'></div>
+</div>
+<div style='clear:both'></div>
+<h5>
+    Keck Guide Star FWHM Plots
+    <button id='fwhmbutton' class='button' onclick='show_hide_div("fwhm")'>Show</button>
+</h5>
+<div style='clear:both'></div>
+<div id='fwhm' style='display:none'>
+    <div id='k1_fwhm' style='float:left'></div>
+    <div id='k2_fwhm' style='float:left'></div>
+</div>
+<div style='clear:both'></div>
+<h5>
+    SkyProbe @ CFHT: Atmospheric Attenuation
+    <button id='skypbutton' class='button' onclick='show_hide_div("skyp")'>Show</button>
+</h5>
+<div style='clear:both'></div>
+<div id='skyp' style='display:none'>
+    <div id='skyprobe' style='float:left'></div>
+</div>
+<div style='clear:both'></div>
+<h5>
+    CFHT Seeing and Mass Profile
+    <button id='massdimmprobutton' class='button' onclick='show_hide_div("massdimmpro")'>Show</button>
+</h5>
+<div style='clear:both'></div>
+<div id='massdimmpro' style='display:none'>
+    <a href='./YYYYMMDD.mkwc.mass.dat'>MASS Data</a> -
+    <a href='./YYYYMMDD.mkwc.dimm.dat'>DIMM Data</a> -
+    <a href='./YYYYMMDD.mkwc.masspro.dat'>MASS Profile Data</a><p>
+    <div id='massdimmhtml' style='float:left'></div>
+    <div id='massdimm' style='float:left'></div>
+</div>
+<script>
+    $('#k1_temperature').load('./k1_temperature.html');
+    $('#k1_humidity').load('./k1_humidity.html');
+    $('#k1_pressure').load('./k1_pressure.html');
+    $('#k1_dewpoint').load('./k1_dewpoint.html');
+    $('#k2_temperature').load('./k2_temperature.html');
+    $('#k2_humidity').load('./k2_humidity.html');
+    $('#k2_pressure').load('./k2_pressure.html');
+    $('#k2_dewpoint').load('./k2_dewpoint.html');
+    $('#k1_fwhm').load('./k1_fwhm.html');
+    $('#k2_fwhm').load('./k2_fwhm.html');
+    $('#skyprobe').load('./skyprobe.html');
+    $('#massdimmhtml').load('./massdimm_plot.html');
+    $('#massdimm').load('./massdimm.html');
+</script>
+</body>
+</html>

@@ -44,6 +44,7 @@ import configparser
 dir_path = os.path.dirname(os.path.realpath(__file__))
 config = configparser.ConfigParser()
 config.read(dir_path+'/config.live.ini')
+emailFrom = config['KOAXFR']['EMAILFROM']
 emailError = config['KOAXFR']['EMAILERROR']
 
 # Default UT date is today
@@ -234,5 +235,5 @@ with open(logFile, 'r') as fp:
 
 message = ''.join((str(error), ' errors\n\n', message))
 if message:
-    koaxfr.send_email(emailError, subject, message, log_writer)
+    koaxfr.send_email(emailError, emailFrom, subject, message, log_writer)
 

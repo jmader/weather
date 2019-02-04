@@ -173,8 +173,9 @@ with open(file, 'w') as fp:
         fp.write(l)
 
 # Copy header files to release directory
-copyfile(dir_path+'/header.css', wxDir+'/header.css')
-copyfile(dir_path+'/header.js', wxDir+'/header.js')
+# There are copies of these at NExScI already
+#copyfile(dir_path+'/header.css', wxDir+'/header.css')
+#copyfile(dir_path+'/header.js', wxDir+'/header.js')
 
 # All done, remove LOC file
 

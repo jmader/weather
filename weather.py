@@ -107,6 +107,10 @@ if not os.path.exists(wxDir):
 sendUrl = ''.join(('cmd=updateWxDb&utdate=', utDate, '&column=utdate&value=', utDate))
 wxdb.updateWxDb(sendUrl, log_writer)
 
+# No longer use all sky
+sendUrl = ''.join(('cmd=updateWxDb&utdate=', utDate, '&column=allsky&value=n/a'))
+wxdb.updateWxDb(sendUrl, log_writer)
+
 # Add utdate to wxDir
 
 joinSeq = (wxDir, '/', utDate.replace('-', ''))
@@ -173,7 +177,7 @@ with open(file, 'w') as fp:
         fp.write(l)
 
 # Copy header files to release directory
-# There are copies of these at NExScI already
+# There are copies of these files at NExScI already
 #copyfile(dir_path+'/header.css', wxDir+'/header.css')
 #copyfile(dir_path+'/header.js', wxDir+'/header.js')
 

@@ -125,6 +125,11 @@ if not os.path.exists(wxDir):
 log_writer.info('weather.py using directory {}'.format(wxDir))
 log_writer.info('weather.py creating wx.LOC')
 
+# Create README
+
+with open(wxDir+'/README', 'w') as fp:
+    fp.write(wxDir)
+
 # Create the LOC file
 
 joinSeq = (wxDir, '/wx.LOC')

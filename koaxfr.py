@@ -28,7 +28,7 @@ def koaxfr(utDate, wxDir, log_writer=''):
     transferAcct = config['KOAXFR']['ACCOUNT']
     transferDir = config['KOAXFR']['DIR']
 
-    xfr_to = ''.join((transferAcct, '&', transferTo, ':', transferDir))
+    xfr_to = ''.join((transferAcct, '@', transferTo, ':', transferDir))
 
     try:
         cmd = ''.join(('/usr/bin/rsync -avz ', wxDir, ' ', xfr_to))

@@ -40,13 +40,13 @@ def skyprobe(utDate='', dir='.', log_writer=''):
     # Create directory
 
     joinSeq = (dir, '/skyprobe')
-    writeDir = ''.join(joinSeq)
+    writeDir = dir #''.join(joinSeq)
     if not os.path.exists(writeDir):
         os.makedirs(writeDir)
 
     # Construct file to write to
 
-    joinSeq = (dir, '/skyprobe/skyprobe.png')
+    joinSeq = (dir, '/skyprobe.png')
     writeFile = ''.join(joinSeq)
 
     try:
@@ -63,7 +63,7 @@ def skyprobe(utDate='', dir='.', log_writer=''):
     if log_writer:
         log_writer.info('skyprobe.py creating skyprobe.html')
 
-    joinSeq = (dir, '/skyprobe/skyprobe.html')
+    joinSeq = (dir, '/skyprobe.html')
     writeFile = ''.join(joinSeq)
     with open(writeFile, 'w') as fp:
         fp.write('<html>\n')

@@ -5,7 +5,7 @@ import subprocess as sp
 import verification
 import update_wx_db as wxdb
 
-def weather_nightly(utDate='', wxDir='.', log_writer=''):
+def weather_nightly(utDate='', wxDir='.', dbUpdate=1, log_writer=''):
     '''
     Copies /h (or /s) nightly data to archive location
 
@@ -47,7 +47,7 @@ def weather_nightly(utDate='', wxDir='.', log_writer=''):
                 if log_writer:
                     log_writer.error('weather_nightly.py nightly directory not found for K{}'.format(i))
                     sendUrl = ''.join(('cmd=updateWxDb&utdate=', utDate, '&column=nightly', str(i), '&value=ERROR'))
-                    wxdb.updateWxDb(sendUrl, log_writer)
+                    if dbUpdate: wxdb.updateWxDb(sendUrl, log_writer)
                 continue
 
         joinSeq = (wxDir, '/nightly', str(i))
@@ -74,7 +74,7 @@ def weather_nightly(utDate='', wxDir='.', log_writer=''):
         # Update koa.koawx entry
 
         sendUrl = ''.join(('cmd=updateWxDb&utdate=', utDate, '&column=nightly', str(i), '&value=', datetime.utcnow().strftime('%Y%m%d+%H:%M:%S')))
-        wxdb.updateWxDb(sendUrl, log_writer)
+        if dbUpdate: wxdb.updateWxDb(sendUrl, log_writer)
 
     if log_writer:
         log_writer.info('weather_nightly.py complete for {}'.format(utDate))

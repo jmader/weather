@@ -55,15 +55,35 @@ def make_weather_plots(utDate, wxDir, log_writer=''):
         # Read the file and skip if error
 
         try:
-            num_lines = sum(1 for line in open(file))
-            data = pd.read_csv(file, skiprows=[0,2,num_lines-1], skip_blank_lines=True)
-            # Replace possible bad values
-            data.replace(' ***', '0.00', inplace=True)
-            data.replace(-100.0000, 0.00, inplace=True)
-            data.replace(999.0000, 0.00, inplace=True)
-        except IOError as e:
+            keys = []
+            keys.append(' "k0:met:tempRaw"')
+            keys.append(' "k'+str(i)+':met:tempRaw"')
+            keys.append(' "k'+str(i)+':dcs:sec:acsTemp"')
+            keys.append(' "k'+str(i)+':dcs:sec:secondaryTemp"')
+            keys.append(' "k0:met:humidityRaw"')
+            keys.append(' "k'+str(i)+':met:humidityRaw"')
+            keys.append(' "k0:met:pressureRaw"')
+            keys.append(' "k0:met:dewpointRaw"')
+            data = []
+            data.append(get_archiver_data(utDate, i, 'k0:met:tempRaw'))
+            data.append(get_archiver_data(utDate, i, f'k{i}:met:tempRaw'))
+            data.append(get_archiver_data(utDate, i, f'k{i}:dcs:sec:acsTemp'))
+            data.append(get_archiver_data(utDate, i, f'k{i}:dcs:sec:secondaryTemp'))
+            data.append(get_archiver_data(utDate, i, 'k0:met:humidityRaw'))
+            data.append(get_archiver_data(utDate, i, f'k{i}:met:humidityRaw'))
+            data.append(get_archiver_data(utDate, i, 'k0:met:pressureRaw'))
+            data.append(get_archiver_data(utDate, i, 'k0:met:dewpointRaw'))
+#            num_lines = sum(1 for line in open(file))
+#            data = pd.read_csv(file, skiprows=[0,2,num_lines-1], skip_blank_lines=True)
+#            # Replace possible bad values
+#            data.replace(' ***', '0.00', inplace=True)
+#            data.replace(-100.0000, 0.00, inplace=True)
+#            data.replace(999.0000, 0.00, inplace=True)
+#        except IOError as e:
+        except:
             if log_writer:
-                log_writer.error('make_nightly_plots.py unable to open file = {}'.format(file))
+#                log_writer.error('make_nightly_plots.py unable to open file = {}'.format(file))
+                log_writer.error('make_fwhm_plots.py unable read archiver data')
             continue
 
         # Set column headers or default to column numbers
@@ -175,24 +195,26 @@ def make_fwhm_plots(utDate, wxDir, log_writer=''):
 
         # Nightly focus file path
 
-        file = wxDir + '/nightly' + str(i) + '/envFocus.arT'
+#        file = wxDir + '/nightly' + str(i) + '/envFocus.arT'
         if log_writer:
             log_writer.info('make_fwhm_plots.py creating fwhm plot for nightly{}'.format(i))
-        if not os.path.exists(file):
-            if log_writer:
-                log_writer.error('make_fwhm_plots.py file does not exist - {}'.format(file))
-            continue
+#        if not os.path.exists(file):
+#            if log_writer:
+#                log_writer.error('make_fwhm_plots.py file does not exist - {}'.format(file))
+#            continue
 
         # Read the file and skip if error
 
         try:
-            num_lines = sum(1 for line in open(file))
-            data = pd.read_csv(file, skiprows=[0,2,num_lines-1], skip_blank_lines=True)
-            # Replace possible bad values
-            data.replace(' ***', '0.00', inplace=True)
+            data = get_archiver_data(utDate, i, f'k{i}:dcs:pnt:cam0:fwhm')
+#            num_lines = sum(1 for line in open(file))
+#            data = pd.read_csv(file, skiprows=[0,2,num_lines-1], skip_blank_lines=True)
+#            # Replace possible bad values
+#            data.replace(' ***', '0.00', inplace=True)
         except IOError as e:
             if log_writer:
-                log_writer.error('make_fwhm_plots.py unable to open file - {}'.format(file))
+#                log_writer.error('make_fwhm_plots.py unable to open file - {}'.format(file))
+                log_writer.error('make_fwhm_plots.py unable read archiver data')
             continue
 
         # Set column headers or default to column numbers
@@ -210,7 +232,7 @@ def make_fwhm_plots(utDate, wxDir, log_writer=''):
 
         # Remove *** values
 
-        data.replace(['***'], [0.0], inplace=True)
+    #    data.replace(['***'], [0.0], inplace=True)
 
         names = []
         names.append('KECK')
@@ -254,3 +276,51 @@ def make_fwhm_plots(utDate, wxDir, log_writer=''):
             if log_writer:
                 log_writer.info('make_nightly_plots.py file saved {}'.format(file))
             fix_html(file + '.html', log_writer)
+
+def get_archiver_data(utDate, telNum, channel):
+    '''
+    Uses the archiver API to retrieve JSON data for the
+    supplied channel.
+
+    [{'meta': {'name': 'k1:met:tempRaw', 'PREC': '2'},
+      'data': [{'secs': 1587686399, 'val': 4.4, 'nanos': 568229777, 'severity': 0, 'status': 0},
+               {'secs': 1587686402, 'val': 4.5, 'nanos': 601184824, 'severity': 0, 'status': 0},
+               {'secs': 1587686405, 'val': 4.4, 'nanos': 620859534, 'severity': 0, 'status': 0},
+               {'secs': 1587686408, 'val': 4.5, 'nanos': 642535755, 'severity': 0, 'status': 0},
+               {'secs': 1587686411, 'val': 4.4, 'nanos': 563372592, 'severity': 0, 'status': 0},
+               {'secs': 1587686414, 'val': 4.5, 'nanos': 594924652, 'severity': 0, 'status': 0}
+              ]
+    ]
+    '''
+
+    # K1ARCHIVER or K2ARCHIVER
+    api = f'K{telNum}ARCHIVER'
+
+    # times for the query
+    start = f'{utDate}T00:00:00Z'
+    end   = f'{utDate}T23:59:59Z'
+
+    config = configparser.ConfigParser()
+    config.read('config.live.ini')
+    archiveUrl = config['API'][api]
+    archiveUrl = f'{archiveUrl}pv={channel}&from={start}&to={end}'
+
+    # Retrieve data
+    data = urlopen(archiveUrl)
+    data = data.read().decode('utf8')
+    data = json.loads(data)
+
+    newdata = []
+
+    for entry in data:
+        for d in entry['data']:
+            timeString = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(d['secs']))
+            mydate, mytime = timeString.split(' ')
+            if mydate != utDate: continue
+            datadict = {}
+            datadict['timestamp'] = timeString
+            datadict['secs'] = d['secs']
+            datadict['value'] = d['val']
+            newdata.append(datadict)
+
+    return newdata
